@@ -1,0 +1,46 @@
+{% extends 'store/base.html' %}
+
+{% block title %}Recommendations - E-Commerce Store{% endblock %}
+
+{% block content %}
+<h1>Personalized Recommendations For You</h1>
+<p style="margin-top: 1rem; color: #666;">These recommendations are generated using our AI-powered recommendation system based on your preferences and behavior.</p>
+
+{% if recommendations %}
+    <div class="product-grid" style="margin-top: 2rem;">
+        {% for product in recommendations %}
+            <div class="product-card">
+                <a href="{% url 'product_detail' product.id %}" style="text-decoration: none; color: inherit;">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image">
+                    {% else %}
+                        <div class="product-image" style="display: flex; align-items: center; justify-content: center; color: #999;">
+                            No Image
+                        </div>
+                    {% endif %}
+                    <div class="product-info">
+                        <div class="product-name">{{ product.name }}</div>
+                        <div class="product-price">${{ product.price }}</div>
+                        <div class="product-rating">⭐ {{ product.rating|default:"0.0" }}/5.0</div>
+                        {% if product.category %}
+                            <div style="color: #666; font-size: 0.9rem;">{{ product.category.name }}</div>
+                        {% endif %}
+                        {% if product.stock > 0 %}
+                            <div style="color: #28a745; font-size: 0.9rem;">In Stock</div>
+                        {% else %}
+                            <div style="color: #dc3545; font-size: 0.9rem;">Out of Stock</div>
+                        {% endif %}
+                    </div>
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div style="text-align: center; padding: 3rem; background: white; border-radius: 8px; margin-top: 2rem;">
+        <p style="font-size: 1.2rem; margin-bottom: 1rem;">No recommendations available yet.</p>
+        <p style="color: #666; margin-bottom: 1rem;">Start browsing products and interacting with them to get personalized recommendations!</p>
+        <a href="{% url 'product_list' %}" class="btn">Browse Products</a>
+    </div>
+{% endif %}
+{% endblock %}
+

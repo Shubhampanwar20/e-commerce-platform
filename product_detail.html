@@ -1,0 +1,126 @@
+{% extends 'store/base.html' %}
+
+{% block title %}{{ product.name }} - E-Commerce Store{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
+    <div>
+        {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" style="width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        {% else %}
+            <div style="width: 100%; height: 400px; background-color: #e9ecef; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #999;">
+                No Image Available
+            </div>
+        {% endif %}
+    </div>
+    
+    <div>
+        <h1>{{ product.name }}</h1>
+        <div style="font-size: 2rem; color: #667eea; font-weight: bold; margin: 1rem 0;">${{ product.price }}</div>
+        <div style="margin: 1rem 0;">
+            <span style="color: #ffc107; font-size: 1.2rem;">⭐</span>
+            <span style="font-size: 1.2rem;">{{ product.rating|default:"0.0" }}/5.0</span>
+        </div>
+        
+        {% if product.category %}
+            <div style="margin: 1rem 0;">
+                <strong>Category:</strong> {{ product.category.name }}
+            </div>
+        {% endif %}
+        
+        {% if product.brand %}
+            <div style="margin: 1rem 0;">
+                <strong>Brand:</strong> {{ product.brand }}
+            </div>
+        {% endif %}
+        
+        <div style="margin: 1rem 0;">
+            <strong>Stock:</strong>
+            {% if product.stock > 0 %}
+                <span style="color: #28a745;">{{ product.stock }} available</span>
+            {% else %}
+                <span style="color: #dc3545;">Out of Stock</span>
+            {% endif %}
+        </div>
+        
+        <div style="margin: 1rem 0; line-height: 1.8;">
+            <strong>Description:</strong>
+            <p>{{ product.description }}</p>
+        </div>
+        
+            {% if user.is_authenticated %}
+                <div class="interaction-buttons">
+                    <button onclick="trackInteraction('like')" class="btn btn-like">👍 Like</button>
+                    <button onclick="trackInteraction('dislike')" class="btn btn-dislike">👎 Dislike</button>
+                </div>
+            {% endif %}
+            
+            {% if product.stock > 0 %}
+                <form method="post" action="{% url 'add_to_cart' product.id %}" style="margin-top: 1rem;">
+                    {% csrf_token %}
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}" style="width: 80px; padding: 0.75rem;">
+                        <button type="submit" class="btn">🛒 Add to Cart</button>
+                    </div>
+                </form>
+            {% else %}
+                <p style="color: #dc3545; margin-top: 1rem;">⚠️ Out of Stock</p>
+            {% endif %}
+            
+            {% if not user.is_authenticated %}
+                <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">
+                    💡 <a href="{% url 'admin:login' %}" style="color: #667eea;">Login</a> to get personalized recommendations and save your preferences
+                </p>
+            {% endif %}
+    </div>
+</div>
+
+{% if recommendations %}
+    <div style="margin-top: 3rem;">
+        <h2>Recommended for You</h2>
+        <div class="product-grid">
+            {% for rec_product in recommendations %}
+                <div class="product-card">
+                    <a href="{% url 'product_detail' rec_product.id %}" style="text-decoration: none; color: inherit;">
+                        {% if rec_product.image %}
+                            <img src="{{ rec_product.image.url }}" alt="{{ rec_product.name }}" class="product-image">
+                        {% else %}
+                            <div class="product-image" style="display: flex; align-items: center; justify-content: center; color: #999;">
+                                No Image
+                            </div>
+                        {% endif %}
+                        <div class="product-info">
+                            <div class="product-name">{{ rec_product.name }}</div>
+                            <div class="product-price">${{ rec_product.price }}</div>
+                            <div class="product-rating">⭐ {{ rec_product.rating|default:"0.0" }}/5.0</div>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}
+
+<script>
+function trackInteraction(type) {
+    fetch("{% url 'track_interaction' product.id %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: 'interaction_type=' + type
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+</script>
+{% endblock %}
+

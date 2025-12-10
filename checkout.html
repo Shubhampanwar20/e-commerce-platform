@@ -1,0 +1,86 @@
+{% extends 'store/base.html' %}
+
+{% block title %}Checkout - E-Commerce Store{% endblock %}
+
+{% block content %}
+<h1>Checkout</h1>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-top: 2rem;">
+    <div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <h2>{% if is_authenticated %}Shipping Information{% else %}Customer & Shipping Information{% endif %}</h2>
+        <form method="post" action="{% url 'process_order' %}">
+            {% csrf_token %}
+            
+            {% if not is_authenticated %}
+                <div class="form-group">
+                    <label for="customer_name">Full Name <span style="color: red;">*</span></label>
+                    <input type="text" id="customer_name" name="customer_name" required placeholder="Enter your full name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="customer_email">Email Address <span style="color: red;">*</span></label>
+                    <input type="email" id="customer_email" name="customer_email" required placeholder="your.email@example.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="customer_phone">Phone Number</label>
+                    <input type="tel" id="customer_phone" name="customer_phone" placeholder="+1 234 567 8900">
+                </div>
+            {% else %}
+                <div style="margin-bottom: 1rem; padding: 1rem; background-color: #e7f3ff; border-radius: 4px;">
+                    <p style="margin: 0;"><strong>Ordering as:</strong> {{ user.get_full_name|default:user.username }}</p>
+                    {% if user.email %}
+                        <p style="margin: 0.5rem 0 0 0;">Email: {{ user.email }}</p>
+                    {% else %}
+                        <div class="form-group" style="margin-top: 1rem;">
+                            <label for="customer_email">Email Address <span style="color: red;">*</span></label>
+                            <input type="email" id="customer_email" name="customer_email" required placeholder="your.email@example.com">
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Phone Number (Optional)</label>
+                    <input type="tel" id="phone" name="phone" placeholder="+1 234 567 8900">
+                </div>
+            {% endif %}
+            
+            <div class="form-group">
+                <label for="shipping_address">Shipping Address <span style="color: red;">*</span></label>
+                <textarea id="shipping_address" name="shipping_address" rows="4" required placeholder="Street address, City, State, ZIP code, Country"></textarea>
+            </div>
+            
+            <button type="submit" class="btn" style="width: 100%; font-size: 1.1rem; padding: 1rem;">Place Order</button>
+        </form>
+    </div>
+    
+    <div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <h2>Order Summary</h2>
+        <div style="margin-top: 1rem;">
+            {% for item in cart_items %}
+                {% with product=item.product quantity=item.quantity subtotal=item.subtotal %}
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #eee;">
+                        <div>
+                            <div style="font-weight: 500;">{{ product.name }}</div>
+                            <div style="color: #666; font-size: 0.9rem;">Qty: {{ quantity }}</div>
+                        </div>
+                        <div style="font-weight: bold;">${{ subtotal }}</div>
+                    </div>
+                {% endwith %}
+            {% endfor %}
+            <div style="display: flex; justify-content: space-between; margin-top: 1rem; padding-top: 1rem; border-top: 2px solid #667eea; font-size: 1.2rem; font-weight: bold;">
+                <span>Total:</span>
+                <span>${{ total }}</span>
+            </div>
+        </div>
+        
+        {% if not is_authenticated %}
+            <div style="margin-top: 1.5rem; padding: 1rem; background-color: #fff3cd; border-radius: 4px;">
+                <p style="margin: 0; font-size: 0.9rem;">
+                    🔒 <strong>Secure Checkout:</strong> Your information is safe and will only be used to process your order.
+                </p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

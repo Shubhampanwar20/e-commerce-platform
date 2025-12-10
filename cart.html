@@ -1,0 +1,78 @@
+{% extends 'store/base.html' %}
+
+{% block title %}Shopping Cart - E-Commerce Store{% endblock %}
+
+{% block content %}
+<h1>Your Shopping Cart</h1>
+
+{% if cart_items %}
+    <table style="width: 100%; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-top: 2rem;">
+        <thead>
+            <tr style="background-color: #667eea; color: white;">
+                <th style="padding: 1rem; text-align: left;">Product</th>
+                <th style="padding: 1rem; text-align: left;">Price</th>
+                <th style="padding: 1rem; text-align: left;">Quantity</th>
+                <th style="padding: 1rem; text-align: left;">Subtotal</th>
+                <th style="padding: 1rem; text-align: left;">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in cart_items %}
+                {% with product=item.product quantity=item.quantity subtotal=item.subtotal %}
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 1rem;">
+                            <a href="{% url 'product_detail' product.id %}" style="text-decoration: none; color: #333; display: flex; align-items: center; gap: 1rem;">
+                                {% if product.image %}
+                                    <img src="{{ product.image.url }}" alt="{{ product.name }}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">
+                                {% endif %}
+                                <span>{{ product.name }}</span>
+                            </a>
+                        </td>
+                        <td style="padding: 1rem;">${{ product.price }}</td>
+                        <td style="padding: 1rem;">
+                            <form method="post" action="{% url 'update_cart_item' product.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="number" name="quantity" value="{{ quantity }}" min="1" max="{{ product.stock }}" style="width: 60px; padding: 0.5rem;">
+                                <button type="submit" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; margin-left: 0.5rem;">Update</button>
+                            </form>
+                        </td>
+                        <td style="padding: 1rem; font-weight: bold;">${{ subtotal }}</td>
+                        <td style="padding: 1rem;">
+                            <form method="post" action="{% url 'remove_from_cart' product.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger" style="padding: 0.5rem 1rem; font-size: 0.9rem;">Remove</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endwith %}
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr style="background-color: #f8f9fa;">
+                <td colspan="3" style="padding: 1rem; text-align: right; font-weight: bold;">Total:</td>
+                <td style="padding: 1rem; font-weight: bold; font-size: 1.2rem;">${{ total }}</td>
+                <td style="padding: 1rem;"></td>
+            </tr>
+        </tfoot>
+    </table>
+    
+    <div style="margin-top: 2rem; text-align: right;">
+        <a href="{% url 'product_list' %}" class="btn btn-secondary">Continue Shopping</a>
+        <a href="{% url 'checkout' %}" class="btn" style="margin-left: 1rem;">Proceed to Checkout</a>
+    </div>
+    
+    {% if not user.is_authenticated %}
+        <div style="margin-top: 1rem; padding: 1rem; background-color: #e7f3ff; border-left: 4px solid #2196F3; border-radius: 4px;">
+            <p style="margin: 0;">
+                💡 <strong>Guest Checkout:</strong> You can place your order without creating an account. 
+                <a href="{% url 'admin:login' %}" style="color: #667eea;">Login</a> to get personalized recommendations and track your orders.
+            </p>
+        </div>
+    {% endif %}
+{% else %}
+    <div style="text-align: center; padding: 3rem; background: white; border-radius: 8px; margin-top: 2rem;">
+        <p style="font-size: 1.2rem; margin-bottom: 1rem;">Your cart is empty.</p>
+        <a href="{% url 'product_list' %}" class="btn">Start Shopping</a>
+    </div>
+{% endif %}
+{% endblock %}

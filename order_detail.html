@@ -1,0 +1,98 @@
+{% extends 'store/base.html' %}
+
+{% block title %}Order #{{ order.id }} - E-Commerce Store{% endblock %}
+
+{% block content %}
+<h1>Order #{{ order.id }}</h1>
+
+<div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-top: 2rem;">
+    <div style="margin-bottom: 2rem;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+            <div>
+                <h3>Order Information</h3>
+                <p><strong>Order Number:</strong> #{{ order.id }}</p>
+                <p><strong>Order Date:</strong> {{ order.created_at|date:"F d, Y H:i" }}</p>
+                <p><strong>Status:</strong> 
+                    <span style="padding: 0.25rem 0.75rem; border-radius: 4px; background-color: 
+                        {% if order.status == 'delivered' %}#28a745
+                        {% elif order.status == 'shipped' %}#17a2b8
+                        {% elif order.status == 'processing' %}#ffc107
+                        {% else %}#6c757d
+                        {% endif %}; color: white; font-weight: bold;">
+                        {{ order.get_status_display }}
+                    </span>
+                </p>
+                <p><strong>Total Amount:</strong> <span style="font-size: 1.2rem; color: #667eea; font-weight: bold;">${{ order.total_amount }}</span></p>
+                
+                <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #eee;">
+                    <h4>Customer Information</h4>
+                    <p><strong>Name:</strong> {{ order.customer_name }}</p>
+                    <p><strong>Email:</strong> {{ order.customer_email }}</p>
+                    {% if order.customer_phone %}
+                        <p><strong>Phone:</strong> {{ order.customer_phone }}</p>
+                    {% endif %}
+                    {% if order.user %}
+                        <p style="color: #666; font-size: 0.9rem;"><em>Registered Customer</em></p>
+                    {% else %}
+                        <p style="color: #666; font-size: 0.9rem;"><em>Guest Order</em></p>
+                    {% endif %}
+                </div>
+            </div>
+            <div>
+                <h3>Shipping Address</h3>
+                <div style="padding: 1rem; background-color: #f8f9fa; border-radius: 4px; margin-top: 0.5rem;">
+                    <p style="white-space: pre-line; margin: 0;">{{ order.shipping_address }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div>
+        <h3>Order Items</h3>
+        <table style="width: 100%; margin-top: 1rem;">
+            <thead>
+                <tr style="background-color: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+                    <th style="padding: 1rem; text-align: left;">Product</th>
+                    <th style="padding: 1rem; text-align: left;">Price</th>
+                    <th style="padding: 1rem; text-align: left;">Quantity</th>
+                    <th style="padding: 1rem; text-align: left;">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cart_items %}
+                    <tr style="border-bottom: 1px solid #dee2e6;">
+                        <td style="padding: 1rem;">{{ item.product.name }}</td>
+                        <td style="padding: 1rem;">${{ item.product.price }}</td>
+                        <td style="padding: 1rem;">{{ item.quantity }}</td>
+                        <td style="padding: 1rem;">${{ item.subtotal }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr style="background-color: #f8f9fa; font-weight: bold;">
+                    <td colspan="3" style="padding: 1rem; text-align: right;">Total:</td>
+                    <td style="padding: 1rem;">${{ order.total_amount }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    
+    <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #eee;">
+        <div style="background-color: #e7f3ff; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+            <p style="margin: 0;">
+                <strong>✅ Order Placed Successfully!</strong> Your order has been received and is being processed.
+                {% if order.customer_email %}
+                    <br>A confirmation email has been sent to <strong>{{ order.customer_email }}</strong>
+                {% endif %}
+            </p>
+        </div>
+        <a href="{% url 'product_list' %}" class="btn">Continue Shopping</a>
+        {% if not user.is_authenticated %}
+            <p style="margin-top: 1rem; color: #666; font-size: 0.9rem;">
+                💡 <a href="{% url 'admin:login' %}" style="color: #667eea;">Create an account</a> to track your orders and get personalized recommendations.
+            </p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
